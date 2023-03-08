@@ -2,13 +2,13 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const G = 400;
 const REPULSION = 0.1;
-const TIMERATE = 0.01;
+const TIMERATE = 0.0001;
 const RADIUS = 0.8;
 const ORIGIN = {
     x: 400,
     y: 400
 }
-const SCALE = 20;
+const SCALE = 10;
 const NORMALIZATION = Math.sqrt(40);
 const body1 = {
     mass: 1,
@@ -62,7 +62,7 @@ const body3 = {
 };
 
 const trail1 = {
-    coords: [[9.7000436, -2.4308753]],
+    coords: [[body1.x, body1.y]],
     length: 80,
     color: "red",
     draw() {
@@ -87,11 +87,19 @@ const trail1 = {
             this.coords.shift();
             this.coords.push([x, y]);
         }
+    },
+    reset() {
+        let tempLength = this.coords.length;
+        for(let i = 1; i < tempLength; i++)
+        {
+            this.coords.shift();
+        }
+        this.coords[0] = [body1.x, body1.y];
     }
 }
 
 const trail2 = {
-    coords: [[-9.7000436, 2.4308753]],
+    coords: [[body2.x, body2.y]],
     length: 80,
     color: "blue",
     draw() {
@@ -116,11 +124,19 @@ const trail2 = {
             this.coords.shift();
             this.coords.push([x, y]);
         }
+    },
+    reset() {
+        let tempLength = this.coords.length;
+        for(let i = 1; i < tempLength; i++)
+        {
+            this.coords.shift();
+        }
+        this.coords[0] = [body2.x, body2.y];
     }
 }
 
 const trail3 = {
-    coords: [[0, 0]],
+    coords: [[body3.x, body3.y]],
     length: 80,
     color: "green",
     draw() {
@@ -145,6 +161,14 @@ const trail3 = {
             this.coords.shift();
             this.coords.push([x, y]);
         }
+    },
+    reset() {
+        let tempLength = this.coords.length;
+        for(let i = 1; i < tempLength; i++)
+        {
+            this.coords.shift();
+        }
+        this.coords[0] = [body3.x, body3.y];
     }
 }
 
@@ -274,6 +298,58 @@ function rungeKutta2Var2ndOrder(nums, interval)
     return [newx1, newx2, newx3, newy1, newy2, newy3, newx1dot, newx2dot, newx3dot, newy1dot, newy2dot, newy3dot];
 }
 
+function randomizeInitialConditions() {
+    //randomize location in body1, body2, body3 domain
+    //body 1 domain [-10, -5] [-10, -5]
+    //body 2 domain [-10, -5] [5, 10]
+    //body 3 domain goes in opposite area
+    //Then measure potential energy of randomized positions
+    //Randomize velocity magnitude from 0 to sqrt(PE/3m)
+    //Randomize velocity angle form 0 to 2pi
+    //Then set everything equal 
+    body1.x = 5*Math.random()-10;
+    body1.y = 5*Math.random()-10;
+    body2.x = 5*Math.random()-10;
+    body2.y = 5*Math.random()+5;
+    body3.x = -1*(body1.x + body2.x);
+    body3.y = -1*(body1.y + body2.y);
+    let PE = potentialEnergy();
+    let vmax = Math.pow(-1*PE/3/body1.mass, 0.5);
+    let v1mag = vmax*Math.random();
+    let v2mag = vmax*Math.random();
+    let v1angle = 2*Math.PI*Math.random();
+    let v2angle = 2*Math.PI*Math.random();
+    let v1 = rotate2D(v1mag, 0, v1angle);
+    let v2 = rotate2D(v2mag, 0, v2angle);
+    body1.vx = v1[0];
+    body1.vy = v1[1];
+    body2.vx = v2[0];
+    body2.vy = v2[1];
+    body3.vx = -1*(body1.vx + body2.vx);
+    body3.vy = -1*(body1.vy + body2.vy);
+    trail1.reset();
+    trail2.reset();
+    trail3.reset();
+}
+
+function setFigureEight() {
+    body1.x = 9.7000436;
+    body1.y = -2.4308753;
+    body2.x = -9.7000436;
+    body2.y = 2.4308753;
+    body3.x = 0;
+    body3.y = 0;
+    body1.vx = 0.93240737/2*NORMALIZATION;
+    body1.vy = 0.86473146/2*NORMALIZATION;
+    body2.vx = 0.93240737/2*NORMALIZATION;
+    body2.vy = 0.86473146/2*NORMALIZATION;
+    body3.vx = -0.93240737*NORMALIZATION;
+    body3.vy = -0.86473146*NORMALIZATION;
+    trail1.reset();
+    trail2.reset();
+    trail3.reset();
+}
+
 function kineticEnergy() {
     return 1/2*body1.mass*(body1.vx*body1.vx + body1.vy*body1.vy) + 1/2*body2.mass*(body2.vx*body2.vx + body2.vy*body2.vy) + 1/2*body3.mass*(body3.vx*body3.vx + body3.vy*body3.vy);
 }
@@ -328,16 +404,16 @@ function collisionResolution(x1, x2, y1, y2, vx1, vx2, vy1, vy2, m1, m2) {
     let ux2 = newv2[0];
     newv1[0] = (m1-m2)/(m1+m2)*ux1 + 2*m2/(m1+m2)*ux2;
     newv2[0] = 2*m1/(m1+m2)*ux1 + (m2-m1)/(m1+m2)*ux2;
-    newv1[0] *= Math.pow((2*RADIUS - Math.abs(ux1*TIMERATE) - Math.abs(ux2*TIMERATE))/(2.05*RADIUS), 0.5);
-    newv2[0] *= Math.pow((2*RADIUS - Math.abs(ux1*TIMERATE) - Math.abs(ux2*TIMERATE))/(2.05*RADIUS), 0.5);
+    newv1[0] *= Math.pow((2*RADIUS - Math.abs(ux1*TIMERATE) - Math.abs(ux2*TIMERATE))/(2.0*RADIUS), 0.5);
+    newv2[0] *= Math.pow((2*RADIUS - Math.abs(ux1*TIMERATE) - Math.abs(ux2*TIMERATE))/(2.0*RADIUS), 0.5);
     // Retain the new vy's
     // Rotate back
     let finalv1 = rotate2D(newv1[0], newv1[1], th);
     let finalv2 = rotate2D(newv2[0], newv2[1], th);
-    let newvx1 = 0.999*finalv1[0];
-    let newvx2 = 0.999*finalv2[0];
-    let newvy1 = 0.999*finalv1[1];
-    let newvy2 = 0.999*finalv2[1];
+    let newvx1 = 0.99999*finalv1[0];
+    let newvx2 = 0.99999*finalv2[0];
+    let newvy1 = 0.99999*finalv1[1];
+    let newvy2 = 0.99999*finalv2[1];
     return [newx1, newx2, newy1, newy2, newvx1, newvx2, newvy1, newvy2];
 }
 
@@ -365,7 +441,7 @@ function drawBodies()
     body1.draw();
     body2.draw();
     body3.draw();
-    for(let i = 0; i < 3; i++)
+    for(let i = 0; i < 200; i++)
     {
         //update
         let currVals = [body1.x, body2.x, body3.x, body1.y, body2.y, body3.y, body1.vx, body2.vx, body3.vx, body1.vy, body2.vy, body3.vy];
@@ -431,7 +507,7 @@ function drawBodies()
     let E = PE + KE;
     let com = COM();
     document.getElementById("Energy").innerHTML = "PE: " + Math.round(PE*1000)/1000 + " KE: " + Math.round(KE*1000)/1000 + " TE: " + Math.round(E*1000)/1000;
-    document.getElementById("Mass").innerHTML = "Total mass: " + body1.mass + body2.mass + body3.mass;
+    document.getElementById("Mass").innerHTML = "Total mass: " + (body1.mass + body2.mass + body3.mass);
     document.getElementById("COMx").innerHTML = Math.round(com[0]*1000)/1000;
     document.getElementById("COMy").innerHTML = Math.round(com[1]*1000)/1000;
     //wait timeRate
@@ -439,4 +515,12 @@ function drawBodies()
     
 };
 
+const randombtn = document.getElementById("Randomize");
+const resetEightbtn = document.getElementById("Figure8");
+randombtn.addEventListener("click", () => {
+    randomizeInitialConditions();
+});
+resetEightbtn.addEventListener("click", () => {
+    setFigureEight();
+});
 window.requestAnimationFrame(drawBodies);
