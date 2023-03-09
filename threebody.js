@@ -8,7 +8,8 @@ const ORIGIN = {
     x: 400,
     y: 400
 }
-const SCALE = 10;
+let SCALE = 10;
+let permaTrail = false;
 const NORMALIZATION = Math.sqrt(40);
 const body1 = {
     mass: 1,
@@ -80,11 +81,14 @@ const trail1 = {
         ctx.stroke();
     },
     append(x, y) {
-        if(this.coords.length < this.length) {
+        if(permaTrail || this.coords.length < this.length) {
             this.coords.push([x, y]);
         }
         else {
-            this.coords.shift();
+            while(this.coords.length >= this.length)
+            {
+                this.coords.shift();
+            }
             this.coords.push([x, y]);
         }
     },
@@ -117,11 +121,14 @@ const trail2 = {
         ctx.stroke();
     },
     append(x, y) {
-        if(this.coords.length < this.length) {
+        if(permaTrail || this.coords.length < this.length) {
             this.coords.push([x, y]);
         }
         else {
-            this.coords.shift();
+            while(this.coords.length >= this.length)
+            {
+                this.coords.shift();
+            }
             this.coords.push([x, y]);
         }
     },
@@ -154,11 +161,14 @@ const trail3 = {
         ctx.stroke();
     },
     append(x, y) {
-        if(this.coords.length < this.length) {
+        if(permaTrail || this.coords.length < this.length) {
             this.coords.push([x, y]);
         }
         else {
-            this.coords.shift();
+            while(this.coords.length >= this.length)
+            {
+                this.coords.shift();
+            }
             this.coords.push([x, y]);
         }
     },
@@ -446,7 +456,6 @@ function drawBodies()
         //update
         let currVals = [body1.x, body2.x, body3.x, body1.y, body2.y, body3.y, body1.vx, body2.vx, body3.vx, body1.vy, body2.vy, body3.vy];
         let newVals = rungeKutta2Var2ndOrder(currVals, TIMERATE);
-        
         body1.x = newVals[0];
         body2.x = newVals[1];
         body3.x = newVals[2];
@@ -517,10 +526,29 @@ function drawBodies()
 
 const randombtn = document.getElementById("Randomize");
 const resetEightbtn = document.getElementById("Figure8");
+const zoomInbtn = document.getElementById("Zoom In");
+const zoomOutbtn = document.getElementById("Zoom Out");
+const permaTrailbtn = document.getElementById("Permanent Trail");
 randombtn.addEventListener("click", () => {
     randomizeInitialConditions();
 });
 resetEightbtn.addEventListener("click", () => {
     setFigureEight();
+});
+zoomInbtn.addEventListener("click", () => {
+    SCALE *= 1.25;
+});
+zoomOutbtn.addEventListener("click", () => {
+    SCALE *= 0.8;
+});
+permaTrailbtn.addEventListener("click", () => {
+    if(permaTrail){
+        permaTrail = false;
+        permaTrailbtn.innerHTML = "Permanent Trails: OFF"
+    }
+    else{
+        permaTrail = true;
+        permaTrailbtn.innerHTML = "Permanent Trails: ON"
+    }
 });
 window.requestAnimationFrame(drawBodies);
