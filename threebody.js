@@ -2,14 +2,26 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const G = 400;
 const REPULSION = 0.1;
-const TIMERATE = 0.0001;
+const TIMERATE = 0.00001;
 const RADIUS = 0.8;
-const ORIGIN = {
-    x: 400,
+let ORIGIN = {
+    x: 600,
     y: 400
 }
+const canvasWidth = 1200;
+const canvasHeight = 800;
 let SCALE = 10;
 let permaTrail = false;
+let collisions = true;
+let movingOrigin = false;
+let mouseInitialPosition = {
+    x: 0,
+    y: 0
+}
+let referenceOrigin = {
+    x: 600,
+    y: 400
+}
 const NORMALIZATION = Math.sqrt(40);
 const body1 = {
     mass: 1,
@@ -444,14 +456,14 @@ function drawBodies()
     Bob2 = Bob1 + l2sin(theta2), Bob2 + l2cos(theta2)
     Plot rectangle between central and bob1, another between bob1 and bob2
     */
-    ctx.clearRect(0, 0, 800, 800);
+    ctx.clearRect(0, 0, 1200, 800);
     trail1.draw();
     trail2.draw();
     trail3.draw();
     body1.draw();
     body2.draw();
     body3.draw();
-    for(let i = 0; i < 200; i++)
+    for(let i = 0; i < 2000; i++)
     {
         //update
         let currVals = [body1.x, body2.x, body3.x, body1.y, body2.y, body3.y, body1.vx, body2.vx, body3.vx, body1.vy, body2.vy, body3.vy];
@@ -470,41 +482,44 @@ function drawBodies()
         body3.vy = newVals[11];
 
         //collision detection
-        if(distance13() < 2*RADIUS)
+        if(collisions)
         {
-            let resolved = collisionResolution(body1.x, body3.x, body1.y, body3.y, body1.vx, body3.vx, body1.vy, body3.vy, body1.mass, body3.mass);
-            body1.x = resolved[0];
-            body3.x = resolved[1];
-            body1.y = resolved[2];
-            body3.y = resolved[3];
-            body1.vx = resolved[4];
-            body3.vx = resolved[5];
-            body1.vy = resolved[6];
-            body3.vy = resolved[7];
-        }
-        if(distance12() < 2*RADIUS)
-        {
-            let resolved = collisionResolution(body1.x, body2.x, body1.y, body2.y, body1.vx, body2.vx, body1.vy, body2.vy, body1.mass, body2.mass);
-            body1.x = resolved[0];
-            body2.x = resolved[1];
-            body1.y = resolved[2];
-            body2.y = resolved[3];
-            body1.vx = resolved[4];
-            body2.vx = resolved[5];
-            body1.vy = resolved[6];
-            body2.vy = resolved[7];
-        }
-        if(distance23() < 2*RADIUS)
-        {
-            let resolved = collisionResolution(body2.x, body3.x, body2.y, body3.y, body2.vx, body3.vx, body2.vy, body3.vy, body2.mass, body3.mass);
-            body2.x = resolved[0];
-            body3.x = resolved[1];
-            body2.y = resolved[2];
-            body3.y = resolved[3];
-            body2.vx = resolved[4];
-            body3.vx = resolved[5];
-            body2.vy = resolved[6];
-            body3.vy = resolved[7];
+            if(distance13() < 2*RADIUS)
+            {
+                let resolved = collisionResolution(body1.x, body3.x, body1.y, body3.y, body1.vx, body3.vx, body1.vy, body3.vy, body1.mass, body3.mass);
+                body1.x = resolved[0];
+                body3.x = resolved[1];
+                body1.y = resolved[2];
+                body3.y = resolved[3];
+                body1.vx = resolved[4];
+                body3.vx = resolved[5];
+                body1.vy = resolved[6];
+                body3.vy = resolved[7];
+            }
+            if(distance12() < 2*RADIUS)
+            {
+                let resolved = collisionResolution(body1.x, body2.x, body1.y, body2.y, body1.vx, body2.vx, body1.vy, body2.vy, body1.mass, body2.mass);
+                body1.x = resolved[0];
+                body2.x = resolved[1];
+                body1.y = resolved[2];
+                body2.y = resolved[3];
+                body1.vx = resolved[4];
+                body2.vx = resolved[5];
+                body1.vy = resolved[6];
+                body2.vy = resolved[7];
+            }
+            if(distance23() < 2*RADIUS)
+            {
+                let resolved = collisionResolution(body2.x, body3.x, body2.y, body3.y, body2.vx, body3.vx, body2.vy, body3.vy, body2.mass, body3.mass);
+                body2.x = resolved[0];
+                body3.x = resolved[1];
+                body2.y = resolved[2];
+                body3.y = resolved[3];
+                body2.vx = resolved[4];
+                body3.vx = resolved[5];
+                body2.vy = resolved[6];
+                body3.vy = resolved[7];
+            }
         }
     }
     trail1.append(body1.x, body1.y);
@@ -529,6 +544,7 @@ const resetEightbtn = document.getElementById("Figure8");
 const zoomInbtn = document.getElementById("Zoom In");
 const zoomOutbtn = document.getElementById("Zoom Out");
 const permaTrailbtn = document.getElementById("Permanent Trail");
+const collisionbtn = document.getElementById("Collisions");
 randombtn.addEventListener("click", () => {
     randomizeInitialConditions();
 });
@@ -551,4 +567,30 @@ permaTrailbtn.addEventListener("click", () => {
         permaTrailbtn.innerHTML = "Permanent Trails: ON"
     }
 });
+collisionbtn.addEventListener("click", () => {
+    if(collisions){
+        collisions = false;
+        collisionbtn.innerHTML = "Collisions: OFF (Things may explode)"
+    }
+    else{
+        collisions = true;
+        collisionbtn.innerHTML = "Collisions: ON"
+    }
+});
+canvas.addEventListener("mousedown", (e) => {
+    mouseInitialPosition.x = e.clientX;
+    mouseInitialPosition.y = e.clientY;
+    movingOrigin = true;
+})
+canvas.addEventListener("mouseup", () => {
+    movingOrigin = false;
+    referenceOrigin.x = ORIGIN.x;
+    referenceOrigin.y = ORIGIN.y;
+})
+canvas.addEventListener("mousemove", (e) => {
+    if (movingOrigin) {
+      ORIGIN.x = e.clientX - mouseInitialPosition.x + referenceOrigin.x;
+      ORIGIN.y = e.clientY - mouseInitialPosition.y + referenceOrigin.y;
+    }
+  });
 window.requestAnimationFrame(drawBodies);
