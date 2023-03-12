@@ -14,6 +14,7 @@ let SCALE = 10;
 let permaTrail = false;
 let collisions = true;
 let movingOrigin = false;
+let timeRateMultiplier = 1;
 let mouseInitialPosition = {
     x: 0,
     y: 0
@@ -467,7 +468,7 @@ function drawBodies()
     {
         //update
         let currVals = [body1.x, body2.x, body3.x, body1.y, body2.y, body3.y, body1.vx, body2.vx, body3.vx, body1.vy, body2.vy, body3.vy];
-        let newVals = rungeKutta2Var2ndOrder(currVals, TIMERATE);
+        let newVals = rungeKutta2Var2ndOrder(currVals, TIMERATE*timeRateMultiplier);
         body1.x = newVals[0];
         body2.x = newVals[1];
         body3.x = newVals[2];
@@ -543,6 +544,7 @@ const randombtn = document.getElementById("Randomize");
 const resetEightbtn = document.getElementById("Figure8");
 const zoomInbtn = document.getElementById("Zoom In");
 const zoomOutbtn = document.getElementById("Zoom Out");
+const resetOriginbtn = document.getElementById("Reset Origin");
 const permaTrailbtn = document.getElementById("Permanent Trail");
 const collisionbtn = document.getElementById("Collisions");
 randombtn.addEventListener("click", () => {
@@ -556,6 +558,12 @@ zoomInbtn.addEventListener("click", () => {
 });
 zoomOutbtn.addEventListener("click", () => {
     SCALE *= 0.8;
+});
+resetOriginbtn.addEventListener("click", () => {
+    ORIGIN.x = 600;
+    ORIGIN.y = 400;
+    referenceOrigin.x = 600;
+    referenceOrigin.y = 400;
 });
 permaTrailbtn.addEventListener("click", () => {
     if(permaTrail){
@@ -580,17 +588,27 @@ collisionbtn.addEventListener("click", () => {
 canvas.addEventListener("mousedown", (e) => {
     mouseInitialPosition.x = e.clientX;
     mouseInitialPosition.y = e.clientY;
+    referenceOrigin.x = ORIGIN.x;
+    referenceOrigin.y = ORIGIN.y;
     movingOrigin = true;
-})
+});
 canvas.addEventListener("mouseup", () => {
     movingOrigin = false;
     referenceOrigin.x = ORIGIN.x;
     referenceOrigin.y = ORIGIN.y;
-})
+});
 canvas.addEventListener("mousemove", (e) => {
     if (movingOrigin) {
       ORIGIN.x = e.clientX - mouseInitialPosition.x + referenceOrigin.x;
       ORIGIN.y = e.clientY - mouseInitialPosition.y + referenceOrigin.y;
     }
-  });
+});
+
+var slider = document.getElementById("calculationSpeed");
+var output = document.getElementById("calcSpeedDisplay");
+output.innerHTML = timeRateMultiplier;
+slider.oninput = function() {
+    timeRateMultiplier = Math.pow(100, this.value/75);
+    output.innerHTML = Math.round(timeRateMultiplier*10000)/10000;
+}
 window.requestAnimationFrame(drawBodies);
