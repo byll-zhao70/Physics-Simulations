@@ -427,8 +427,8 @@ function collisionResolution(x1, x2, y1, y2, vx1, vx2, vy1, vy2, m1, m2) {
     let ux2 = newv2[0];
     newv1[0] = (m1-m2)/(m1+m2)*ux1 + 2*m2/(m1+m2)*ux2;
     newv2[0] = 2*m1/(m1+m2)*ux1 + (m2-m1)/(m1+m2)*ux2;
-    newv1[0] *= Math.pow((2*RADIUS - Math.abs(ux1*TIMERATE) - Math.abs(ux2*TIMERATE))/(2.0*RADIUS), 0.5);
-    newv2[0] *= Math.pow((2*RADIUS - Math.abs(ux1*TIMERATE) - Math.abs(ux2*TIMERATE))/(2.0*RADIUS), 0.5);
+    newv1[0] *= Math.pow((2*RADIUS - Math.abs(ux1*TIMERATE*timeRateMultiplier) - Math.abs(ux2*TIMERATE*timeRateMultiplier))/(2.0*RADIUS), 0.5);
+    newv2[0] *= Math.pow((2*RADIUS - Math.abs(ux1*TIMERATE*timeRateMultiplier) - Math.abs(ux2*TIMERATE*timeRateMultiplier))/(2.0*RADIUS), 0.5);
     // Retain the new vy's
     // Rotate back
     let finalv1 = rotate2D(newv1[0], newv1[1], th);

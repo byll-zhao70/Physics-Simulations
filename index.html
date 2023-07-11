@@ -51,6 +51,22 @@
 		background: #04AA6D;
 		cursor: pointer;
 		}
+
+		.button {
+		width: 180px;
+		height: 60px;
+		background-color: #fc0202;
+		border-radius: 12px;
+		text-align: center;
+		color: black;
+		font-size: 16px;
+		transition-duration: 0.4s;
+		cursor: pointer;
+		}
+		.button:hover {
+			background-color: black;
+  			color: #fc0202;
+		}
 	</style>
 </head>
 <body>
@@ -73,8 +89,10 @@
 			<p>Calculation Speed: <span id="calcSpeedDisplay"></span></p>
 		</div>
 		<article1><canvas id="canvas" width = "1200" height = "800" style = "background-color: black"></canvas></article1>
-        
-		
+        <div style = "white-space:nowrap;  clear: left">
+			<br>
+			<button class="button" onclick="window.location.href='spring.html';">Spring Pendulum</button>
+		</div>
 
 	</main>
 	<footer>

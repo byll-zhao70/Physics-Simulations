@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset = "UTF-8">
+	<title>Spring Pendulum</title>
+    <style>
+        article1 {
+		float: left;
+		padding: 20px;
+		width: 1700px;
+		text-align: left;
+		background-color: rgb(97, 95, 95);
+		color: white;
+		height: device-height;
+		}
+		.button {
+		width: 180px;
+		height: 60px;
+		background-color: #02fc6a;
+		border-radius: 12px;
+		text-align: center;
+		color: black;
+		font-size: 16px;
+		transition-duration: 0.4s;
+		cursor: pointer;
+		}
+		.button:hover {
+			background-color: black;
+  			color: #02fc6a;
+		}
+    </style>
+</head>
+<body>
+	<header>
+	</header>
+	<main>
+		<p id="test">Hello</p>
+		<div>
+			<article1>
+				<canvas id="canvas" width = "800" height = "800" style = "background-color: white"></canvas>
+				<canvas id="graph" width = "800" height = "800" style = "background-color: white;"></canvas>
+			</article1>
+		</div>
+		<div style = "white-space:nowrap;  clear: left">
+			<br>
+			<button class="button" onclick="window.location.href='index.html';">Three Body Problem</button>
+		</div>
+	</main>
+	<footer>
+	</footer>
+	<script src="springpendulum.js"></script>
+</body>
+
+</html>
