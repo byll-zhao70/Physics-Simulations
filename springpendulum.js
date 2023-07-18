@@ -1,5 +1,6 @@
 let G = 9.8;
 let timeRate = 0.00004;
+let timeRateMultiplier = 10;
 let permaTrail = true;
 const canvas = document.getElementById("canvas");
 const canvas2 = document.getElementById("graph")
@@ -29,7 +30,7 @@ const spring = {
 const bob = {
     mass: 3,
     theta: 0.2 + 0.5*Math.random(),
-    thetaDot: 0.7 + 0.5*Math.random()
+    thetaDot: 0.3 + 0.2*Math.random()
 };
 
 const trail = {
@@ -163,17 +164,119 @@ function totalEnergy() {
     return kineticEnergy() + potentialEnergy();
 }
 
+function constructPotentialEnergyCurve(energy)
+{
+    let curve = [[0, 0]];
+    let gapExists = false;
+    for(let theta = 0; theta < 2*Math.PI; theta += 0.01)
+    {
+        let a = 1/2*spring.k;
+        let b = -1*spring.k*spring.equilibriumLength - bob.mass*G*Math.cos(theta);
+        let c = 1/2*spring.k*spring.equilibriumLength*spring.equilibriumLength - energy;
+        let r1 = 0;
+        let r2 = 0;
+        if(b*b-4*a*c >= 0)
+        {
+            r1 = (-b - Math.sqrt(b*b-4*a*c))/2/a;
+            r2 = (-b + Math.sqrt(b*b-4*a*c))/2/a;
+        }
+        else{
+            gapExists = true;
+        }
+        if(r1 == 0 && r2 == 0)
+        {
+            continue;
+        }
+        if(curve.length == 1)
+        {
+            curve.push([r1, theta]);
+            curve.push([r2, theta]);
+            curve.shift();
+        }
+        else{
+            curve.push([r1, theta]);
+            curve.push([r2, theta]);
+        }
+    }
+    if(!gapExists)
+    {
+        ctx2.beginPath();
+        for(let i = 0; i < curve.length; i += 2)
+        {
+            let x = curve[i][0]*Math.sin(curve[i][1]);
+            let y = curve[i][0]*Math.cos(curve[i][1]);
+            if(i == 0)
+            {
+                ctx2.moveTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
+            }
+            else{
+                ctx2.lineTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
+            }
+        }
+        ctx2.strokeStyle = "blue";
+        ctx2.stroke();
+        ctx2.beginPath();
+        for(let i = 1; i < curve.length; i += 2)
+        {
+            let x = curve[i][0]*Math.sin(curve[i][1]);
+            let y = curve[i][0]*Math.cos(curve[i][1]);
+            if(i == 1)
+            {
+                ctx2.moveTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
+            }
+            else{
+                ctx2.lineTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
+            }
+        }
+        ctx2.strokeStyle = "blue";
+        ctx2.stroke();
+    }
+    else{
+        ctx2.beginPath();
+        for(let i = 0; i < curve.length; i += 2)
+        {
+            let x = curve[i][0]*Math.sin(curve[i][1]);
+            let y = curve[i][0]*Math.cos(curve[i][1]);
+            if(i == 0)
+            {
+                ctx2.moveTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
+            }
+            else{
+                ctx2.lineTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
+            }
+        }
+        ctx2.strokeStyle = "blue";
+        ctx2.stroke();
+        ctx2.beginPath();
+        for(let i = 1; i < curve.length; i += 2)
+        {
+            let x = curve[i][0]*Math.sin(curve[i][1]);
+            let y = curve[i][0]*Math.cos(curve[i][1]);
+            if(i == 1)
+            {
+                ctx2.moveTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
+            }
+            else{
+                ctx2.lineTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
+            }
+        }
+        ctx2.strokeStyle = "blue";
+        ctx2.stroke();
+    }
+}
+
 function drawPendulum()
 {   
     ctx.clearRect(0, 0, 800, 800);
     ctx2.clearRect(0, 0, 800, 800);
     system.draw();
     trail.draw();
+    constructPotentialEnergyCurve(totalEnergy());
     document.getElementById("test").innerHTML = "what";
     //update
     for(let i = 0; i < 1000; i++)
     {
-        let newVals = rungeKutta2Var4thOrder(bob.theta, spring.length, bob.thetaDot, spring.rDot, timeRate);
+        let newVals = rungeKutta2Var4thOrder(bob.theta, spring.length, bob.thetaDot, spring.rDot, timeRate*timeRateMultiplier);
         bob.theta = newVals[0];
         spring.length = newVals[1];
         bob.thetaDot = newVals[2];
@@ -186,7 +289,7 @@ function drawPendulum()
     let E = PE + KE;
 
     document.getElementById("test").innerHTML = " " + Math.round(PE*1000)/1000 + " " + Math.round(KE*1000)/1000 + " " + Math.round(E*1000)/1000 +  
-    " " + Math.round(bob.theta*1000)/1000 + " " + Math.round(spring.length*1000)/1000;
+    " " + Math.round(bob.theta*1000)/1000 + " " + Math.round(spring.length*1000)/1000 + " " + Math.round(spring.rDot*1000)/1000 + " " + Math.round(bob.thetaDot*1000)/1000;
     //wait timeRate
     window.requestAnimationFrame(drawPendulum);
     
