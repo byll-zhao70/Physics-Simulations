@@ -1,6 +1,6 @@
 let G = 9.8;
 let timeRate = 0.00004;
-let timeRateMultiplier = 10;
+let timeRateMultiplier = 1;
 let permaTrail = true;
 const canvas = document.getElementById("canvas");
 const canvas2 = document.getElementById("graph")
@@ -30,7 +30,7 @@ const spring = {
 const bob = {
     mass: 3,
     theta: 0.2 + 0.5*Math.random(),
-    thetaDot: 0.3 + 0.2*Math.random()
+    thetaDot: 0.9 + 0.2*Math.random()
 };
 
 const trail = {
@@ -168,6 +168,7 @@ function constructPotentialEnergyCurve(energy)
 {
     let curve = [[0, 0]];
     let gapExists = false;
+    let gapIndex = -1;
     for(let theta = 0; theta < 2*Math.PI; theta += 0.01)
     {
         let a = 1/2*spring.k;
@@ -180,8 +181,9 @@ function constructPotentialEnergyCurve(energy)
             r1 = (-b - Math.sqrt(b*b-4*a*c))/2/a;
             r2 = (-b + Math.sqrt(b*b-4*a*c))/2/a;
         }
-        else{
+        else if(!gapExists) {
             gapExists = true;
+            gapIndex = Math.round(theta/0.01);
         }
         if(r1 == 0 && r2 == 0)
         {
@@ -233,7 +235,7 @@ function constructPotentialEnergyCurve(energy)
     }
     else{
         ctx2.beginPath();
-        for(let i = 0; i < curve.length; i += 2)
+        for(let i = 0; i < 2*gapIndex; i += 2)
         {
             let x = curve[i][0]*Math.sin(curve[i][1]);
             let y = curve[i][0]*Math.cos(curve[i][1]);
@@ -245,20 +247,23 @@ function constructPotentialEnergyCurve(energy)
                 ctx2.lineTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
             }
         }
-        ctx2.strokeStyle = "blue";
-        ctx2.stroke();
-        ctx2.beginPath();
-        for(let i = 1; i < curve.length; i += 2)
+        for(let i = 2*gapIndex - 1; i > 0; i-= 2)
         {
             let x = curve[i][0]*Math.sin(curve[i][1]);
             let y = curve[i][0]*Math.cos(curve[i][1]);
-            if(i == 1)
-            {
-                ctx2.moveTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
-            }
-            else{
-                ctx2.lineTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
-            }
+            ctx2.lineTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
+        }
+        for(let i = curve.length-1; i > 2*gapIndex; i -= 2)
+        {
+            let x = curve[i][0]*Math.sin(curve[i][1]);
+            let y = curve[i][0]*Math.cos(curve[i][1]);
+            ctx2.lineTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
+        }
+        for(let i = 2*gapIndex; i < curve.length; i += 2)
+        {
+            let x = curve[i][0]*Math.sin(curve[i][1]);
+            let y = curve[i][0]*Math.cos(curve[i][1]);
+            ctx2.lineTo(x*SCALE + ORIGIN.x, y*SCALE + ORIGIN.y);
         }
         ctx2.strokeStyle = "blue";
         ctx2.stroke();
@@ -272,7 +277,6 @@ function drawPendulum()
     system.draw();
     trail.draw();
     constructPotentialEnergyCurve(totalEnergy());
-    document.getElementById("test").innerHTML = "what";
     //update
     for(let i = 0; i < 1000; i++)
     {
@@ -281,18 +285,28 @@ function drawPendulum()
         spring.length = newVals[1];
         bob.thetaDot = newVals[2];
         spring.rDot = newVals[3];
-
+        if(i % 100 == 0)
+        {
+            trail.append(spring.length, bob.theta);
+        }
     }
-    trail.append(spring.length, bob.theta);
     let PE = potentialEnergy();
     let KE = kineticEnergy();
     let E = PE + KE;
 
-    document.getElementById("test").innerHTML = " " + Math.round(PE*1000)/1000 + " " + Math.round(KE*1000)/1000 + " " + Math.round(E*1000)/1000 +  
-    " " + Math.round(bob.theta*1000)/1000 + " " + Math.round(spring.length*1000)/1000 + " " + Math.round(spring.rDot*1000)/1000 + " " + Math.round(bob.thetaDot*1000)/1000;
+    document.getElementById("Energy").innerHTML = "Total Energy: " + Math.round(E*1000)/1000 + " J";
+    document.getElementById("Mass").innerHTML = "Mass: " + bob.mass + " kg";
+    document.getElementById("RadialVelocity").innerHTML = "Radial Velocity: " + Math.round(spring.rDot*1000)/1000 + " m/s";
+    document.getElementById("AngularVelocity").innerHTML = "Angular Velocity: " + Math.round(bob.thetaDot*1000)/1000 + " 1/s";
     //wait timeRate
     window.requestAnimationFrame(drawPendulum);
     
 };
-
+var slider = document.getElementById("calculationSpeed");
+var output = document.getElementById("calcSpeedDisplay");
+output.innerHTML = timeRateMultiplier;
+slider.oninput = function() {
+    timeRateMultiplier = Math.pow(100, this.value/75);
+    output.innerHTML = Math.round(timeRateMultiplier*10000)/10000;
+}
 window.requestAnimationFrame(drawPendulum);
