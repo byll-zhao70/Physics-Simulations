@@ -2,6 +2,8 @@ let G = 9.8;
 let timeRate = 0.00004;
 let timeRateMultiplier = 1;
 let permaTrail = true;
+let showPECurve = true;
+let showEquilibriumLength = false;
 const canvas = document.getElementById("canvas");
 const canvas2 = document.getElementById("graph")
 
@@ -152,6 +154,15 @@ function rungeKutta2Var4thOrder(a, b, c, d, interval)
     return [newa, newb, newc, newd];
 }
 
+function randomizeInitialConditions() {
+    //randomize initial conditions according to way they were randomized in object definition
+    spring.length = 10 + 4*Math.random();
+    spring.rDot = 2*Math.random();
+    bob.theta = 0.2 + 0.5*Math.random();
+    bob.thetaDot = 0.9 + 0.2*Math.random();
+    trail.reset();
+}
+
 function kineticEnergy() {
     return 1/2*(bob.mass)*(spring.length*bob.thetaDot)*(spring.length*bob.thetaDot) + 1/2*bob.mass*spring.rDot*spring.rDot;
 }
@@ -270,13 +281,28 @@ function constructPotentialEnergyCurve(energy)
     }
 }
 
+function drawEquilibriumLength()
+{
+    ctx2.beginPath();
+    ctx2.arc(ORIGIN.x, ORIGIN.y, SCALE*spring.equilibriumLength, 0, Math.PI*2, true);
+    ctx2.strokeStyle = "green";
+    ctx2.stroke();
+}
+
 function drawPendulum()
 {   
     ctx.clearRect(0, 0, 800, 800);
     ctx2.clearRect(0, 0, 800, 800);
     system.draw();
     trail.draw();
-    constructPotentialEnergyCurve(totalEnergy());
+    if(showPECurve)
+    {
+        constructPotentialEnergyCurve(totalEnergy());
+    }
+    if(showEquilibriumLength)
+    {
+        drawEquilibriumLength();
+    }
     //update
     for(let i = 0; i < 1000; i++)
     {
@@ -309,4 +335,34 @@ slider.oninput = function() {
     timeRateMultiplier = Math.pow(100, this.value/75);
     output.innerHTML = Math.round(timeRateMultiplier*10000)/10000;
 }
+
+const randomizeButton = document.getElementById("Randomize");
+const potentialEnergyButton = document.getElementById("PE Curve");
+const equilibriumLengthButton = document.getElementById("Equilibrium Length");
+randomizeButton.addEventListener("click", () => {
+    randomizeInitialConditions();
+});
+potentialEnergyButton.addEventListener("click", () => {
+    showPECurve = !showPECurve;
+    if(showPECurve)
+    {
+        potentialEnergyButton.innerHTML = "Potential Energy Curve: ON";
+    }
+    else
+    {
+        potentialEnergyButton.innerHTML = "Potential Energy Curve: OFF";
+    }
+});
+equilibriumLengthButton.addEventListener("click", () => {
+    showEquilibriumLength = !showEquilibriumLength;
+    if(showEquilibriumLength)
+    {
+        equilibriumLengthButton.innerHTML = "Show Equilibrium Length: ON";
+    }
+    else
+    {
+        equilibriumLengthButton.innerHTML = "Show Equilibrium Length: OFF";
+    }
+});
+
 window.requestAnimationFrame(drawPendulum);
